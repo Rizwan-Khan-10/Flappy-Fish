@@ -10,7 +10,7 @@ class Game {
         this.player = new Player(this);
         this.sound = new Audio();
         this.obstacles = [];
-        this.numberOfObstacles = 20;
+        this.numberOfObstacles = 1000;
         this.gravity;
         this.speed;
         this.minSpeed;
@@ -36,7 +36,9 @@ class Game {
         });
 
         this.canvas, addEventListener("mousedown", e => {
-            this.player.flap();
+            if (!this.gameOver) {
+                this.player.flap();
+            }
         });
 
         this.canvas, addEventListener("mouseup", e => {
@@ -47,12 +49,14 @@ class Game {
 
         window.addEventListener("keydown", e => {
             if (e.key === " " || e.key === "Enter") {
-                this.player.flap();
+                if (!this.gameOver) {
+                    this.player.flap();
+                }
             }
             if (e.key === "Shift" || e.key.toLowerCase() === "c") {
                 this.player.startCharge();
             }
-            if (e.toLowerCase() === "r") {
+            if (e.key.toLowerCase() === "r") {
                 this.resize(window.innerWidth, window.innerHeight);
             }
         });
@@ -92,14 +96,14 @@ class Game {
         this.width = this.canvas.width;
         this.height = this.canvas.height;
         this.ratio = this.height / this.baseHeight;
+        this.speed = Math.floor(2 * this.ratio);
+        this.minSpeed = this.speed;
+        this.maxSpeed = this.speed * 5;
         this.bottomMargin = Math.floor(50 * this.ratio);
         this.smallFont = Math.ceil(20 * this.ratio);
         this.largeFont = Math.ceil(45 * this.ratio);
         this.context.font = this.smallFont + "x Arial";
         this.gravity = 0.15 * this.ratio;
-        this.speed = 2 * this.ratio;
-        this.minSpeed = this.speed;
-        this.maxSpeed = this.speed * 5;
         this.player.resize();
         this.background.resize();
         this.createObstacles();
@@ -130,14 +134,32 @@ class Game {
     createObstacles() {
         this.obstacles = [];
         const firstX = this.baseHeight * this.ratio;
-        const obstacleSpacing = 600 * this.ratio;
+        let x = firstX;
         for (let i = 0; i < this.numberOfObstacles; i++) {
-            this.obstacles.push(new Obstacle(this, firstX + i * obstacleSpacing));
+            let spacing;
+
+            if (i < 5) {
+                spacing = 1000 * this.ratio;
+            } else if (i < 15) {
+                spacing = 900 * this.ratio;
+            } else if (i < 35) {
+                spacing = 800 * this.ratio;
+            } else if (i < 50) {
+                spacing = 700 * this.ratio;
+            } else if (i < 100) {
+                spacing = 600 * this.ratio;
+            } else {
+                spacing = 500 * this.ratio;
+            }
+
+            this.obstacles.push(new Obstacle(this, x));
+            x += spacing;
         }
     }
 
     drawStatusText() {
         this.context.save();
+        this.context.font = this.smallFont + "px Arial";
         this.context.fillText("Score: " + this.score, this.width - this.smallFont, this.largeFont);
         this.context.textAlign = "left";
         this.context.fillText("Timer: " + this.formatTimer(), this.smallFont, this.largeFont);
@@ -198,6 +220,20 @@ class Game {
             }
         }
     }
+
+    checkSpeed() {
+        if (this.score < 5) {
+            this.speed = Math.floor(2 * this.ratio);
+        } else if (this.score < 20) {
+            this.speed = Math.floor(3 * this.ratio);
+        } else if (this.score < 50) {
+            this.speed = Math.floor(4 * this.ratio);
+        } else {
+            this.speed = Math.floor(5 * this.ratio);
+        }
+        this.minSpeed = this.speed;
+        this.maxSpeed = this.speed * 5;
+    }
 }
 
 window.addEventListener("load", () => {
@@ -213,7 +249,6 @@ window.addEventListener("load", () => {
     function animate(timeStamp) {
         const deltaTime = timeStamp - lastTime;
         lastTime = timeStamp;
-        // context.clearRect(0, 0, canvas.width, canvas.height);
         game.render(deltaTime);
         requestAnimationFrame(animate);
     }

@@ -25,7 +25,7 @@ class Player {
         this.game.context.drawImage(this.image, 0, this.frameY * this.spriteHeight, this.spriteWidth, this.spriteHeight, this.x, this.y, this.width, this.height);
         if (this.game.debug) {
             this.game.context.beginPath();
-            this.game.context.arc(this.collisionX , this.collisionY, this.collisionRadius, 0, Math.PI * 2);
+            this.game.context.arc(this.collisionX, this.collisionY, this.collisionRadius, 0, Math.PI * 2);
             this.game.context.stroke();
         }
     }
@@ -39,6 +39,7 @@ class Player {
         this.collisionY = this.y + this.height * 0.5;
         if (!this.isTouchingBottom() && !this.charging) {
             this.speedY += this.game.gravity;
+            this.game.checkSpeed();
         } else {
             this.speedY = 0;
         }
@@ -82,7 +83,7 @@ class Player {
     }
 
     handleEnergy() {
-        if (this.game.eventUpdate) {
+        if (this.game.eventUpdate && !this.game.gameOver) {
             if (this.energy < this.maxEnergy) {
                 this.energy += 1;
             }
@@ -97,20 +98,24 @@ class Player {
     }
 
     startCharge() {
-        if (this.energy >= this.minEnergy && !this.charging) {
-            this.charging = true;
-            this.game.speed = this.game.maxSpeed;
-            this.wingsCharge();
-            this.game.sound.play(this.game.sound.charge);
-        } else {
-            this.stopCharge();
+        if (!this.game.gameOver) {
+            if (this.energy >= this.minEnergy && !this.charging) {
+                this.charging = true;
+                this.game.speed = this.game.maxSpeed;
+                this.wingsCharge();
+                this.game.sound.play(this.game.sound.charge);
+            } else {
+                this.stopCharge();
+            }
         }
     }
 
     stopCharge() {
-        this.charging = false;
-        this.game.speed = this.game.minSpeed;
-        this.frameY = 0;
+        if (!this.game.gameOver) {
+            this.charging = false;
+            this.game.speed = this.game.minSpeed;
+            this.frameY = 0;
+        }
     }
 
     wingsIdle() {
