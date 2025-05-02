@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
+
 <body>
     <canvas id="canvas1"></canvas>
 
@@ -23,10 +28,18 @@
         <audio id="lose" src="Assets/Sound/lose.mp3"></audio>
     </div>
 
+    <div id="container">
+        <div id="controls">
+            <i id="restartBtn" class="fa-solid fa-rotate-right"></i>
+            <i id="pausePlayBtn" class="fa-solid fa-pause"></i>
+        </div>
+    </div>
+
     <script src="audio.js"></script>
     <script src="background.js"></script>
     <script src="player.js"></script>
     <script src="obstacle.js"></script>
     <script src="main.js"></script>
 </body>
+
 </html>

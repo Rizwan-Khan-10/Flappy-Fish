@@ -29,6 +29,8 @@ class Game {
         this.eventUpdate = false;
         this.touchStartX;
         this.swipeDistance = 50;
+        this.paused = false;
+        this.isUIInteraction = false;
         this.resize(window.innerWidth, window.innerHeight);
 
         window.addEventListener("resize", e => {
@@ -37,11 +39,15 @@ class Game {
 
         this.canvas, addEventListener("mousedown", e => {
             if (!this.gameOver) {
+                if (e.target.closest("#controls")) return;
+                if (this.isUIInteraction) return;
                 this.player.flap();
             }
         });
 
         this.canvas, addEventListener("mouseup", e => {
+            if (e.target.closest("#controls")) return;
+            if (this.isUIInteraction) return;
             setTimeout(() => {
                 this.player.wingsUp();
             }, 50);
@@ -66,11 +72,17 @@ class Game {
         });
 
         this.canvas.addEventListener("touchstart", e => {
-            this.player.flap();
-            this.touchStartX = e.changedTouches[0].pageX;
+            if (e.target.closest("#controls")) return;
+            if (this.isUIInteraction) return;
+            if (!this.gameOver) {
+                this.player.flap();
+                this.touchStartX = e.changedTouches[0].pageX;
+            }
         });
 
         this.canvas.addEventListener("touchend", e => {
+            if (e.target.closest("#controls")) return;
+            if (this.isUIInteraction) return;
             if (e.changedTouches[0].pageX - this.touchStartX > this.swipeDistance) {
                 this.player.startCharge();
             } else {
@@ -140,16 +152,20 @@ class Game {
 
             if (i < 5) {
                 spacing = 1000 * this.ratio;
-            } else if (i < 15) {
-                spacing = 900 * this.ratio;
-            } else if (i < 35) {
+            } else if (i < 10) {
                 spacing = 800 * this.ratio;
-            } else if (i < 50) {
+            } else if (i < 20) {
                 spacing = 700 * this.ratio;
-            } else if (i < 100) {
+            } else if (i < 40) {
+                spacing = 650 * this.ratio;
+            } else if (i < 60) {
                 spacing = 600 * this.ratio;
-            } else {
+            } else if (i < 80) {
+                spacing = 550 * this.ratio;
+            } else if (i < 100) {
                 spacing = 500 * this.ratio;
+            } else {
+                spacing = 450 * this.ratio;
             }
 
             this.obstacles.push(new Obstacle(this, x));
@@ -169,7 +185,6 @@ class Game {
             this.context.fillText(this.message1, this.width * 0.5, this.height * 0.5 - this.largeFont, this.width * 0.5);
             this.context.font = this.smallFont + "px Arial";
             this.context.fillText(this.message2, this.width * 0.5, this.height * 0.5 - this.smallFont, this.width * 0.5);
-            this.context.fillText("Press 'R' to try again!", this.width * 0.5, this.height * 0.5, this.width * 0.5);
         }
         if (this.player.energy <= this.player.minEnergy) {
             this.context.fillStyle = "red";
@@ -222,14 +237,20 @@ class Game {
     }
 
     checkSpeed() {
-        if (this.score < 5) {
+        if (this.score < 10) {
             this.speed = Math.floor(2 * this.ratio);
         } else if (this.score < 20) {
             this.speed = Math.floor(3 * this.ratio);
-        } else if (this.score < 50) {
+        } else if (this.score < 40) {
             this.speed = Math.floor(4 * this.ratio);
-        } else {
+        } else if (this.score < 60) {
             this.speed = Math.floor(5 * this.ratio);
+        } else if (this.score < 80) {
+            this.speed = Math.floor(6 * this.ratio);
+        } else if (this.score < 100) {
+            this.speed = Math.floor(7 * this.ratio);
+        } else {
+            this.speed = Math.floor(8 * this.ratio);
         }
         this.minSpeed = this.speed;
         this.maxSpeed = this.speed * 5;
@@ -237,20 +258,55 @@ class Game {
 }
 
 window.addEventListener("load", () => {
+    let sounds = document.querySelectorAll("audio");
     const canvas = document.getElementById("canvas1");
     const context = canvas.getContext("2d");
     canvas.width = 720;
     canvas.height = 720;
 
     const game = new Game(canvas, context);
+    let paused = false;
+
+    const restartBtn = document.getElementById("restartBtn");
+    const pausePlayBtn = document.getElementById("pausePlayBtn");
+
+    restartBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        game.isUIInteraction = true;
+        game.resize(window.innerWidth, window.innerHeight);
+        paused = false;
+        pausePlayBtn.classList.remove("fa-play");
+        pausePlayBtn.classList.add("fa-pause");
+        setTimeout(() => game.isUIInteraction = false, 100);
+    });
+
+    pausePlayBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        game.isUIInteraction = true;
+        paused = !paused;
+        if (pausePlayBtn.classList.contains("fa-pause")) {
+            pausePlayBtn.classList.remove("fa-pause");
+            pausePlayBtn.classList.add("fa-play");
+        } else {
+            pausePlayBtn.classList.remove("fa-play");
+            pausePlayBtn.classList.add("fa-pause");
+
+        }
+        setTimeout(() => game.isUIInteraction = false, 100);
+    });
 
     let lastTime = 0;
 
     function animate(timeStamp) {
         const deltaTime = timeStamp - lastTime;
         lastTime = timeStamp;
-        game.render(deltaTime);
+        if (!paused) {
+            game.render(deltaTime);
+        }
         requestAnimationFrame(animate);
     }
     requestAnimationFrame(animate);
 });
+
